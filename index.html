@@ -30,8 +30,8 @@
 <script>
   // 1. Create a map object.
   var map = L.map('map', {
-  center: [35.5946,-82.5540], //note that we've centered the map to downtown AVL
-  zoom: 6, //this line adjusts the starting zoom level of the map
+  center: [35.864051, -79.701507], //note that we've centered the map to downtown AVL
+  zoom: 7, //this line adjusts the starting zoom level of the map
   maxZoom: 18,//this line sets the maximum zoom level
   //this line sets the minimum zoom level
   detectRetina: true // detect whether the sceen is high resolution or not.
@@ -70,7 +70,7 @@ const tach = L.divIcon({
   className: 'tach'
 });
 
-var animalWasteSites = new L.GeoJSON.AJAX("assets/animalFeedPermits.geojson",{
+var animalFeedSites = new L.GeoJSON.AJAX("assets/animalFeedPermits.geojson",{
   onEachFeature: function popUp(f,l){
        var out = [];
        if (f.properties){
@@ -90,11 +90,39 @@ var animalWasteSites = new L.GeoJSON.AJAX("assets/animalFeedPermits.geojson",{
     },
 // marker by animal type
 
+});//.addTo(map);
+
+
+const activeIcon = L.divIcon({
+  html: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Pro 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2022 Fonticons, Inc. --><path d="M470.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L192 338.7 425.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/></svg>',
+  iconSize: [20, 20],
+  className: 'activeIcon'
+});
+
+var miningSites = new L.GeoJSON.AJAX("assets/NC_Mining_Permits.geojson",{
+  onEachFeature: function popUp(f,l){
+       var out = [];
+       if (f.properties){
+           for(key in f.properties){
+               out.push(key+": "+f.properties[key]);
+           }
+           l.bindPopup(out.join("<br />"));
+       }
+   }, // popup with all table information. - 11/10/2022
+  pointToLayer: function(feature, latlng) {
+      var id = 0;
+      var thisIcon = null;
+      if (feature.properties.MINE_STATUS == "Active") { thisIcon = activeIcon ; }
+      else if (feature.properties.PERMIT_TYPE == "Cattle State COC")  { thisIcon = xtwo; }
+      else { thisIcon = tach; }// All other property types from attribute table
+      return L.marker(latlng,{icon: thisIcon});
+    },
+    style:{
+     fillcolor: 'Red',
+   },
+
+   
 }).addTo(map);
-
-
-
-
 
 
 
@@ -181,7 +209,7 @@ var airbnb_listings = new L.GeoJSON.AJAX("assets/airbnb_listings.geojson",{
       return colors[id];
   }
 
-3000
+
   function style(feature) {
       return {
           fillColor: setColor(feature.properties.total_bnbs),
@@ -193,7 +221,7 @@ var airbnb_listings = new L.GeoJSON.AJAX("assets/airbnb_listings.geojson",{
       };
   }
 
-3000
+
   var zoning_disticts = new L.geoJson.ajax("assets/zoning_districts.geojson", {
       style: style,
       pane: 'zoning',
