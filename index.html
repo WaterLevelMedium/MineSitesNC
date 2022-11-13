@@ -11,6 +11,58 @@
     <style>
 
  	      html, body, #map { width: 100%; height: 100%; margin: 0; background: #fff; }
+        .legend {
+            line-height: 40px;
+            font-size: 16px;
+            width: 140px;
+            color: #333333;
+            padding: 6px 8px;
+            background: white;
+            background: rgba(255,255,255,0.8);
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+            border-radius: 5px;
+            font-family: 'Titillium Web', sans-serif;
+            opacity: 1;
+            z-index: 314;
+            }
+          .legend i {
+            width: 20px;
+            height: 20px;
+            float: left;
+            margin-right: 8px;
+            opacity: 0.9;
+              }
+            .legend svg {
+            width: 16px;
+            height: 16px;
+            margin-right: 3px;
+            float: left;
+              }
+            .legend p {
+            font-size: 13px;
+            line-height: 20px;
+            margin: 0;
+            font-weight:500;
+
+              }
+
+            .legend .inactive_names {
+              text-align: center;
+              font-size: 11px;
+              line-height: 15px;
+              opacity: 1;
+            }
+            .legend .legend_permit_title {
+              font-weight: bold;
+              text-align: center;
+              padding: 8px;
+              font-size: 15px;
+
+
+            }
+            .legend .legend_mine_density {
+              float: right;
+            }
 
     </style>
     	<link href="https://fonts.googleapis.com/css?family=Titillium+Web" rel="stylesheet">
@@ -25,79 +77,67 @@
 
 </head>
 <body>
-<!-- Our web map and content will go here -->
 <div id="map"></div>
 <script>
-  // 1. Create a map object.
   var map = L.map('map', {
-  center: [35.864051, -79.701507], //note that we've centered the map to downtown AVL
-  zoom: 7, //this line adjusts the starting zoom level of the map
-  maxZoom: 18,//this line sets the maximum zoom level
-  //this line sets the minimum zoom level
-  detectRetina: true // detect whether the sceen is high resolution or not.
+  center: [35.864051, -79.701507],
+  zoom: 7,
+  maxZoom: 18,
   });
-  // 2. Add a base map.
-  L.tileLayer('http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png').addTo(map);
+
+
+  var Esri_DeLorme = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Specialty/DeLorme_World_Base_Map/MapServer/tile/{z}/{y}/{x}', {
+	attribution: 'Tiles &copy; Esri &mdash; Copyright: &copy;2012 DeLorme',
+	minZoom: 1,
+	maxZoom: 11
+}).addTo(map);
+
+
+
+
+
 
   map.createPane('airbnb2022');
   map.createPane('zoning');
-  map.createPane('animalOps');
-
-
-  var colors = chroma.scale('Accent').mode('lch').colors(3);
-
-  for (i = 0; i < 3; i++) {
-      $('head').append($("<style> .marker-color-" + (i + 1).toString() + " { color: " + colors[i] + "; font-size: 15px; text-shadow: 0 0 3px #ffffff;} </style>"));
-  }
+  map.createPane('CountyBoundaries');
+  map.createPane('mineSites');
 
 
 
-const pigIcon = L.divIcon({
-  html: '<i class="fas fa-times"></i>',
-  iconSize: [20, 20],
-  className: 'pigIcon'
+  var colors = chroma.scale('YlOrRd').mode('lch').colors(7);
+
+
+  const activeIcon = L.divIcon({
+  html: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Pro 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2022 Fonticons, Inc. --><path fill-opacity=".6" fill="#00fa2e" d="M470.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L192 338.7 425.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/></svg>',
+  iconSize: [12, 12] ,
+  className: 'activeIcon'
 });
 
-const xtwo = L.divIcon({
-  html: '<i class="fas fa-times-circle"></i>',
-  iconSize: [20, 20],
-  className: 'otherX'
+  const xIcon = L.divIcon({
+  html: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Pro 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2022 Fonticons, Inc. --><path fill-opacity=".8" fill="#1f201d" d="M376.6 84.5c11.3-13.6 9.5-33.8-4.1-45.1s-33.8-9.5-45.1 4.1L192 206 56.6 43.5C45.3 29.9 25.1 28.1 11.5 39.4S-3.9 70.9 7.4 84.5L150.3 256 7.4 427.5c-11.3 13.6-9.5 33.8 4.1 45.1s33.8 9.5 45.1-4.1L192 306 327.4 468.5c11.3 13.6 31.5 15.4 45.1 4.1s15.4-31.5 4.1-45.1L233.7 256 376.6 84.5z"/></svg>',
+  iconSize: [12, 12] ,
+  className: 'xIcon',
+
+
 });
 
-const tach = L.divIcon({
+  const questionIcon = L.divIcon({
+  html: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Pro 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2022 Fonticons, Inc. --><path fill-opacity=".6" fill="#0031fa" d="M96 96c-17.7 0-32 14.3-32 32s-14.3 32-32 32s-32-14.3-32-32C0 75 43 32 96 32h97c70.1 0 127 56.9 127 127c0 52.4-32.2 99.4-81 118.4l-63 24.5 0 18.1c0 17.7-14.3 32-32 32s-32-14.3-32-32V301.9c0-26.4 16.2-50.1 40.8-59.6l63-24.5C240 208.3 256 185 256 159c0-34.8-28.2-63-63-63H96zm48 384c-22.1 0-40-17.9-40-40s17.9-40 40-40s40 17.9 40 40s-17.9 40-40 40z"/></svg>',
+  iconSize: [20, 20] ,
+  className: 'questionIcon',
+
+
+});
+  const tach = L.divIcon({
   html: '<i class="fas fa-tachometer-alt"></i>',
-  iconSize: [20, 20],
+  iconSize: [12, 12] ,
   className: 'tach'
 });
 
-var animalFeedSites = new L.GeoJSON.AJAX("assets/animalFeedPermits.geojson",{
-  onEachFeature: function popUp(f,l){
-       var out = [];
-       if (f.properties){
-           for(key in f.properties){
-               out.push(key+": "+f.properties[key]);
-           }
-           l.bindPopup(out.join("<br />"));
-       }
-   }, // popup with all table information. - 11/10/2022
-  pointToLayer: function(feature, latlng) {
-      var id = 0;
-      var thisIcon = null;
-      if (feature.properties.PERMIT_TYPE == "Swine State COC") { thisIcon = pigIcon ; }
-      else if (feature.properties.PERMIT_TYPE == "Cattle State COC")  { thisIcon = xtwo; }
-      else { thisIcon = tach; }// All other property types from attribute table
-      return L.marker(latlng,{icon: thisIcon});
-    },
-// marker by animal type
 
-});//.addTo(map);
+// link to NCDEQ map https://ncdenr.maps.arcgis.com/apps/View/index.html?appid=0e67f71c4a0d4deb8da73f1b42f4b577
+// link to data https://data-ncdenr.opendata.arcgis.com/datasets/nc-mining-permits/about
 
-
-const activeIcon = L.divIcon({
-  html: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Pro 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2022 Fonticons, Inc. --><path d="M470.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L192 338.7 425.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/></svg>',
-  iconSize: [20, 20],
-  className: 'activeIcon'
-});
 
 var miningSites = new L.GeoJSON.AJAX("assets/NC_Mining_Permits.geojson",{
   onEachFeature: function popUp(f,l){
@@ -113,107 +153,49 @@ var miningSites = new L.GeoJSON.AJAX("assets/NC_Mining_Permits.geojson",{
       var id = 0;
       var thisIcon = null;
       if (feature.properties.MINE_STATUS == "Active") { thisIcon = activeIcon ; }
-      else if (feature.properties.PERMIT_TYPE == "Cattle State COC")  { thisIcon = xtwo; }
-      else { thisIcon = tach; }// All other property types from attribute table
+      else if (feature.properties.MINE_STATUS == "Released")  { thisIcon = xIcon; }
+      else if (feature.properties.MINE_STATUS == "Withdrawn")  { thisIcon = xIcon; }
+      else if (feature.properties.MINE_STATUS == "Inactive")  { thisIcon = xIcon; }
+      else if (feature.properties.MINE_STATUS == "Pending")  { thisIcon = questionIcon; }
+      else if (feature.properties.MINE_STATUS == "Revoked")  { thisIcon = xIcon; }
+      else if (feature.properties.MINE_STATUS == "Denied")  { thisIcon = xIcon; }
+      else { thisIcon = tach; console.log(feature.properties.MINE_STATUS); console.log('Some sites not displayed.')}// All other property types from attribute table
       return L.marker(latlng,{icon: thisIcon});
     },
-    style:{
-     fillcolor: 'Red',
-   },
-
-   
+// Released Withdrawn Withdrawn Revoked  Denied
 }).addTo(map);
 
+var ncCountyShape = new L.GeoJSON.AJAX('assets/NCDOT_County_Boundaries_Spat.geojson',{
+                 attribution: 'Map: River Pyle,</br> Layers: <a href="https:www.nconemap.gov/datasets/NCDOT::ncdot-county-boundaries/explore?location=35.103575%2C-79.919050%2C7.06"> NCDOT County Boundaries</a> <a href="https://data-ncdenr.opendata.arcgis.com/datasets/nc-mining-permits/about">|  NCDEQ Mining Permits </a>',
+                 pane: 'CountyBoundaries',
+                 style: style,
+               }).addTo(map);
+
+// end layers
 
 
-
-var Airbnb2022 = new L.GeoJSON.AJAX("assets/Airbnb_sep2022.geojson",{
-
-
-  onEachFeature: function popUp(f,l){
-       var out = [];
-       if (f.properties){
-           for(key in f.properties){
-               out.push(key+": "+f.properties[key]);
-           }
-           l.bindPopup(out.join("<br />"));
-       }
-   }, // popup with all table information. - 11/10/2022
-  pointToLayer: function(feature, latlng) {
-      var id = 0;
-      if (feature.properties.property_t == "Entire house") { id = 0; }
-      else if (feature.properties.property_t == "Private room in house")  { id = 1; }
-      else { id = 2;} // All other property types from attribute table
-      return L.marker(latlng, {icon: L.divIcon({className: 'fab fa-airbnb marker-color-' + (id + 1).toString() })});
-    },
-
-
-
-
-
-      attribution: 'Airbnb Listings &copy; Inside Airbnb | Asheville Zoning Districts &copy; City of Asheville Open Data | Base Map &copy; CartoDB | Map Author: ',
-      pane: 'airbnb2022',
-
-});//.addTo(map);
-
-
-
-
-
-var airbnb_listings = new L.GeoJSON.AJAX("assets/airbnb_listings.geojson",{
-      // assign a function to the onEachFeature parameter of the airbnb_listings object.
-        // Then each (point) feature will have a popup window.
-          // The content of the popup window is the value of `property_t` from the attribute table
-  // onEachFeature: function (feature, layer) {
-  //
-  //   layer.bindPopup(feature.properties.property_t);
-  //
-  // },     //  popup with minimal information
-  onEachFeature: function popUp(f,l){
-         var out = [];
-         if (f.properties){
-             for(key in f.properties){
-                 out.push(key+": "+f.properties[key]);
-             }
-             l.bindPopup(out.join("<br />"));
-         }
-     }, // popup with all table information.
-  pointToLayer: function(feature, latlng) {
-      var id = 0;
-      if (feature.properties.property_t == "Entire house") { id = 0; }
-      else if (feature.properties.property_t == "Private room in house")  { id = 1; }
-      else { id = 2;} // All other property types from attribute table
-      return L.marker(latlng, {icon: L.divIcon({className: 'fab fa-airbnb marker-color-' + (id + 1).toString() })});
-    },
-
-      pane: 'airbnb2020',
-      attribution: 'Airbnb Listings &copy; Inside Airbnb | Asheville Zoning Districts &copy; City of Asheville Open Data | Base Map &copy; CartoDB | Map Author: '
-
-
-  });//.addTo(map);
-
-  // airbnb_listings.getPopup().on('remove', function(){
-  //   map.setView([[35.5946,-82.5540]],12);
-  // });3000
-  //airbnb_listings.on('click',alert(out));
 
 
 //##########################################################################################
-  function setColor(density) {
+ // NC county shapefile mine site per county density gradient assignment
+  function setColor(join_count) {
       var id = 0;
-      if (density > 106) { id = 4; } //133-27=106:highest fifth class
-      else if (density > 79 && density <= 106) { id = 3; } //106-27=79:4thclass
-      else if (density > 52 && density <= 79) { id = 2; } //79-27=52:3rdclass
-      else if (density > 25 &&  density <= 52) { id = 1; } //52-27=25:2ndclass
-      else  { id = 0; }
+      if (join_count > 81) { id = 6; }
+      else if (join_count > 65 && join_count <= 81) { id = 5; }
+      else if (join_count > 49 && join_count <= 65) { id = 4; }
+      else if (join_count > 32 && join_count <= 49) { id = 3; }
+      else if (join_count > 16 &&  join_count <= 32) { id = 2; } // skip one to show contrast
+      else  { id = 0; } // 0 - 9.8
       return colors[id];
   }
 
+  // distribution of join_count
+  // xbar 23.57    0 - 16.3    , 32.7, 49, 65.3, 81.7 , 98 join_count intervals dist 6 bins
 
   function style(feature) {
       return {
-          fillColor: setColor(feature.properties.total_bnbs),
-          fillOpacity: 0.4,
+          fillColor: setColor(feature.properties.Join_Count),
+          fillOpacity: 0.8,
           weight: 2,
           opacity: .2,
           color: '#b4b4b4',
@@ -221,28 +203,37 @@ var airbnb_listings = new L.GeoJSON.AJAX("assets/airbnb_listings.geojson",{
       };
   }
 
+//##########################################################################################
 
-  var zoning_disticts = new L.geoJson.ajax("assets/zoning_districts.geojson", {
-      style: style,
-      pane: 'zoning',
-  });//.addTo(map);
+// start legend
+  var legend = L.control({position: 'topright'});
+  legend.onAdd = function () {
+  var div = L.DomUtil.create('div', 'legend');
+  div.innerHTML += '<b>Mines per county</b><br/>';
+  console.log(colors);
+  // xbar 23.57    0 - 16.3    , 32.7, 49, 65.3, 81.7 , 98 join_count intervals dist 6 bins
+  div.innerHTML += '<i style="background-color: ' + colors[6] + '; opacity: 0.5"></i><p>98+</p>';
+  div.innerHTML += '<i style="background-color: ' + colors[5] + '; opacity: 0.5"></i><p>82-98</p>';
+  div.innerHTML += '<i style="background-color: ' + colors[4] + '; opacity: 0.5"></i><p>66-81</p>';
+  div.innerHTML += '<i style="background-color: ' + colors[3] + '; opacity: 0.5"></i><p>50-65</p>';
+  div.innerHTML += '<i style="background-color: ' + colors[2] + '; opacity: 0.5"></i><p>33-49</p>';
+  div.innerHTML += '<i style="background-color: ' + colors[1] + '; opacity: 0.5"></i><p>17-32</p>';
+  div.innerHTML += '<i style="background-color: ' + colors[0] + '; opacity: 0.5"></i><p>0-16</p>';
+  div.innerHTML += '<hr> <p class="legend_permit_title">Permit Type </p>';
+  div.innerHTML +=  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Pro 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2022 Fonticons, Inc. --><path fill-opacity=".6" fill="#00fa2e" d="M470.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L192 338.7 425.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/></svg><p><b> - Active Permit</b></p>';
+  div.innerHTML += '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Pro 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2022 Fonticons, Inc. --><path fill-opacity=".8" fill="#1f201d" d="M376.6 84.5c11.3-13.6 9.5-33.8-4.1-45.1s-33.8-9.5-45.1 4.1L192 206 56.6 43.5C45.3 29.9 25.1 28.1 11.5 39.4S-3.9 70.9 7.4 84.5L150.3 256 7.4 427.5c-11.3 13.6-9.5 33.8 4.1 45.1s33.8 9.5 45.1-4.1L192 306 327.4 468.5c11.3 13.6 31.5 15.4 45.1 4.1s15.4-31.5 4.1-45.1L233.7 256 376.6 84.5z"/></svg><p><b>- Not in opertation</b></br><p class="inactive_names">Released,  Withdrawn, Revoked, Denied, Inactive</p>';
+  div.innerHTML += '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Pro 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2022 Fonticons, Inc. --><path size=2px fill-opacity=".6" fill="#0031fa" d="M96 96c-17.7 0-32 14.3-32 32s-14.3 32-32 32s-32-14.3-32-32C0 75 43 32 96 32h97c70.1 0 127 56.9 127 127c0 52.4-32.2 99.4-81 118.4l-63 24.5 0 18.1c0 17.7-14.3 32-32 32s-32-14.3-32-32V301.9c0-26.4 16.2-50.1 40.8-59.6l63-24.5C240 208.3 256 185 256 159c0-34.8-28.2-63-63-63H96zm48 384c-22.1 0-40-17.9-40-40s17.9-40 40-40s40 17.9 40 40s-17.9 40-40 40z"/></svg><p><b>- Pending Permit</b></p>';
+  return div;
+  };
+// Released,  Withdrawn, Revoked, Denied, Inactive
 
+  legend.addTo(map);
+  // end legend
 
-map.getPane('airbnb2022').style.zIndex = 308;
-map.getPane('zoning').style.zIndex = 309;
-map.getPane('animalOps').style.zIndex = 310;
+  var scale =  L.control.scale({position: 'topright', maxWidth: 150, imperial: true}).addTo(map);
 
-
-  //airbnb_listings = L.geoJson.ajax("/Users/plyere/Documents/Spring 2021-2022/GHY 3814/BivariateMap_Lab6/assets/airbnb_listings.geojson",{
-    //attribution: 'Airbnb Listings &copy; Inside Airbnb | Asheville Zoning Districts &copy; City of Asheville Open Data | Base Map &copy; CartoDB | Map Author: '
-  //});
-
-
-
-  // Add the Airbnbs to the map.
-
-  //"airbnb_listings.addTo(mymap);
-
+  map.getPane('CountyBoundaries').style.zIndex = 307;
+  map.getPane('mineSites').style.zIndex = 310;
 
 
 
@@ -252,273 +243,3 @@ map.getPane('animalOps').style.zIndex = 310;
 </script>
 </body>
 </html>
-<!--
-/////////////////
-1. Create the map and add a basemap
-/////////////////
-
-// 1. Create a map object.
-var mymap = L.map('map', {
-    center: [35.5946,-82.5540], //note that we've centered the map to downtown AVL
-    zoom: 13, //this line adjusts the starting zoom level of the map
-    maxZoom: 18,//this line sets the maximum zoom level
-    minZoom: 11,//this line sets the minimum zoom level
-    detectRetina: //true  detect whether the screen is high resolution or not.
-});
-
-// 2. Add a base map.
-L.tileLayer('http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png').addTo(mymap);
-
-
-/////////////////
-1. Add Data
-/////////////////
-
-// 3. Add Airbnb GeoJSON Data
-// Null variable that will hold Airbnb data
-var airbnb_listings = null;
-// add several extra spaces here.
-//steps 4, 5, etc. will be inserted in this line location.
-// Get GeoJSON and put it on the map when it loads
-// Make sure you have the correct directory path below
-// You can see we're also adding attribution information for our data sources
-// We will also add lines of code around this airbnb_listings object as we adjust the style of the symbols
-//Make sure and change your authorname in the attribute information
-airbnb_listings = L.geoJson.ajax("assets/airbnb_listings.geojson",{
-    attribution: 'Airbnb Listings &copy; Inside Airbnb | Asheville Zoning Districts &copy; City of Asheville Open Data | Base Map &copy; CartoDB | Map Author: '
-});
-// Add the Airbnbs to the map.
-airbnb_listings.addTo(mymap);
-
-
-/////////////////
-2. Point Marker Visualization - Create Color Scheme
-/////////////////
-// 4. build up a set of colors from colorbrewer's dark2 category
-var colors = chroma.scale('Dark2').mode('lch').colors(3);
-
-// 5. dynamically append style classes to this page. The style classes will be used to shade the markers.
-// We can use a for loop to do this.
-for (i = 0; i < 3; i++) {
-    $('head').append($("<style> .marker-color-" + (i + 1).toString() + " { color: " + colors[i] + "; font-size: 15px; text-shadow: 0 0 3px #ffffff;} </style>"));
-}
-
-/////////////////
-2. Assign style class to each Airbnb property type to make the colors work
-/////////////////
-
-// Get GeoJSON and put it on the map when it loads
-// Make sure you have the correct directory path below
-// You can see we're also adding attribution information for our data sources
-airbnb_listings = L.geoJson.ajax("assets/airbnb_listings.geojson",{
-
-  function(feature, latlng) {
-    var id = 0;
-    if (feature.properties.property_t == "Entire house") { id = 0; }
-    else if (feature.properties.property_t == "Private room in house")  { id = 1; }
-    else { id = 2;} // All other property types from attribute table
-    return L.marker(latlng, {icon: L.divIcon({className: 'fab fa-airbnb marker-color-' + (id + 1).toString() })});
-  },
-
-    attribution: 'Airbnb Listings &copy; Inside Airbnb | Asheville Zoning Districts &copy; City of Asheville Open Data | Base Map &copy; CartoDB | Map Author: '
-});
-// Add the Airbnbs to the map.
-airbnb_listings.addTo(mymap);
-
-
-/////////////////
-2. Apply an icon to each marker
-/////////////////
-
-// Get GeoJSON and put it on the map when it loads
-// Make sure you have the correct directory path below
-// You can see we're also adding attribution information for our data sources
-airbnb_listings = L.geoJson.ajax("assets/airbnb_listings.geojson",{
-
-pointToLayer: function(feature, latlng) {
-    var id = 0;
-    if (feature.properties.property_t == "Entire house") { id = 0; }
-    else if (feature.properties.property_t == "Private room in house")  { id = 1; }
-    else { id = 2;} // All other property types from attribute table
-    return L.marker(latlng, {icon: L.divIcon({className: 'fab fa-airbnb marker-color-' + (id + 1).toString() })});
-  },
-    attribution: 'Airbnb Listings &copy; Inside Airbnb | Asheville Zoning Districts &copy; City of Asheville Open Data | Base Map &copy; CartoDB | Map Author: '
-});
-// Add the Airbnbs to the map.
-airbnb_listings.addTo(mymap);
-
-
-/////////////////
-2. Add a pop-up with onEachFeature
-/////////////////
-
-/ Get GeoJSON and put it on the map when it loads
-// Make sure you have the correct directory path below
-// You can see we're also adding attribution information for our data sources
-airbnb_listings = L.geoJson.ajax("assets/airbnb_listings.geojson",{
-
-  // assign a function to the onEachFeature parameter of the airbnb_listings object.
-  // Then each (point) feature will have a popup window.
-  // The content of the popup window is the value of `property_t` from the attribute table
-  onEachFeature: function (feature, layer) {
-      layer.bindPopup(feature.properties.property_t);
-  },
-
-  pointToLayer: function(feature, latlng) {
-      var id = 0;
-      if (feature.properties.property_t == "Entire house") { id = 0; }
-      else if (feature.properties.property_t == "Private room in house")  { id = 1; }
-      else { id = 2;} // All other property types from attribute table
-      return L.marker(latlng, {icon: L.divIcon({className: 'fab fa-airbnb marker-color-' + (id + 1).toString() })});
-  },
-    attribution: 'Airbnb Listings &copy; Inside Airbnb | Asheville Zoning Districts &copy; City of Asheville Open Data | Base Map &copy; CartoDB | Map Author: '
-}).addTo(mymap);
-
-
-/////////////////
-3. Polygon visualization
-/////////////////
-
-
-// 6. Set function for color ramp
-colors = chroma.scale('Purples').colors(5); //we'll use 5 classes of purples
-
-// this function manually defines your choropleth classification system
-//so you'll need to figure out which break points you'd like to use
-//based on the data distribution
-//this equal interval classification with 5 classes, takes the range of the
-//data (133) and divides it by 5, to show there are intervals of 27 per class
-//so...
-function setColor(density) {
-    var id = 0;
-    if (density > 106) { id = 4; } //133-27=106:highest fifth class
-    else if (density > 79 && density <= 106) { id = 3; } //106-27=79:4thclass
-    else if (density > 52 && density <= 79) { id = 2; } //79-27=52:3rdclass
-    else if (density > 25 &&  density <= 52) { id = 1; } //52-27=25:2ndclass
-    else  { id = 0; }
-    return colors[id];
-}
-
-L.geoJson.ajax("assets/zoning_districts.geojson").addTo(mymap);
-
-
-
-/////////////////
-3. Apply color palette
-/////////////////
-
-// 7. Set style function that sets fill color property equal to total Airbnbs
-function style(feature) {
-    return {
-        fillColor: setColor(feature.properties.total_bnbs),
-        fillOpacity: 0.4,
-        weight: 2,
-        opacity: 1,
-        color: '#b4b4b4',
-        dashArray: '4'
-    };
-}
-
-
-// 8. Add county polygons
-L.geoJson.ajax("assets/zoning_districts.geojson", {
-    style: style
-}).addTo(mymap);
-
-
-
-/////////////////
-4. Other Map Elements - Legend
-/////////////////
-
-
-
-// 9. Create Leaflet Control Object for Legend
-var legend = L.control({position: 'topright'});
-
-// 10. Function that runs when legend is added to map
-legend.onAdd = function () {
-
-    // Create Div Element and Populate it with HTML
-    var div = L.DomUtil.create('div', 'legend');
-    //this line creates a title for the choropleth part of the legend
-    div.innerHTML += '<b>Airbnbs per District</b><br />';
-    //notice the class breaks entered at the end of the next 5 lines
-    //the colors specify the shade of purple that we used to do the polygon shading
-    div.innerHTML += '<i style="background: ' + colors[4] + '; opacity: 0.5"></i><p>107+</p>';
-    div.innerHTML += '<i style="background: ' + colors[3] + '; opacity: 0.5"></i><p>80-106</p>';
-    div.innerHTML += '<i style="background: ' + colors[2] + '; opacity: 0.5"></i><p>53-79</p>';
-    div.innerHTML += '<i style="background: ' + colors[1] + '; opacity: 0.5"></i><p>26-52</p>';
-    div.innerHTML += '<i style="background: ' + colors[0] + '; opacity: 0.5"></i><p> 0-25</p>';
-    //this line provides the legend title for the airbnb colored symbols
-    div.innerHTML += '<hr><b>Property Type<b><br />';
-    //the next 3 lines call the airbnb icon along with its proper color
-    //notice the names of the Airbnb property types listed within the <p> tags at the end of the lines
-    div.innerHTML += '<i class="fab fa-airbnb marker-color-1"></i><p>Entire house</p>';
-    div.innerHTML += '<i class="fab fa-airbnb marker-color-2"></i><p>Private room in house</p>';
-    div.innerHTML += '<i class="fab fa-airbnb marker-color-3"></i><p>Other</p>';
-    // Return the Legend div containing the HTML content
-    return div;
-};
-
-// 11. Add a legend to map
-legend.addTo(mymap);
-
-
-/////////////////
-4. Legend Styling in CSS
-/////////////////
-
-
-.legend {
-    line-height: 40px;
-    font-size: 16px;
-    width: 190px;
-    color: #333333;
-    padding: 6px 8px;
-    background: white;
-    background: rgba(255,255,255,0.5);
-    box-shadow: 0 0 15px rgba(0,0,0,0.2);
-    border-radius: 5px;
-}
-
-.legend i {
-    width: 20px;
-    height: 20px;
-    float: left;
-    margin-right: 8px;
-    opacity: 0.9;
-}
-
-.legend img {
-    width: 16px;
-    height: 16px;
-    margin-right: 3px;
-    float: left;
-}
-
-.legend p {
-    font-size: 14px;
-    line-height: 20px;
-    margin: 0;
-}
-
-
-/////////////////
-4. Add a Scale bar
-/////////////////
-
-// 12. Add a scale bar to map
-L.control.scale({position: 'bottomleft'}).addTo(mymap);
-
-
-/////////////////
-4. Change the font - Modify legend tag by ADDING font-family line
-/////////////////
-
-
-.legend {
-
-    font-family: 'Titillium Web', sans-serif;
-
-} -->
